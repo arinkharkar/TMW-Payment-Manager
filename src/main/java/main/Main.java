@@ -43,5 +43,15 @@ public class Main {
 		for (Event e : events) {
 			System.out.printf("Entry: %s (%s)\n", e.getSummary(), e.getStart().getDateTime());
 		}
+		
+		
+		ExcelManager excelManager;
+		try {
+			excelManager = new ExcelManager();
+		} catch (Exception e) {
+			System.err.printf("Error with excel: %s", e.getMessage());
+		}
+		
+		
   }
 }
