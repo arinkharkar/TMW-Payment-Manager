@@ -10,6 +10,7 @@ public class ExcelManager {
 	
 	private static final String excelResourceName = "/payments.xlsx";
 	
+	@SuppressWarnings("resource")
 	public ExcelManager() throws IOException {
 		InputStream in = getClass().getResourceAsStream(excelResourceName);
 		
@@ -17,7 +18,7 @@ public class ExcelManager {
 		
 		try {
 			workbook = new XSSFWorkbook(in);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new IOException(String.format("Error opening resource %s", excelResourceName));
 		}
 		

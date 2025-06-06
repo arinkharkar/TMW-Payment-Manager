@@ -40,14 +40,28 @@ public class Main {
 			System.err.printf("Error getting previous Monday: %s", e.getMessage());
 			return;
 		}
-		for (Event e : events) {
-			System.out.printf("Entry: %s (%s)\n", e.getSummary(), e.getStart().getDateTime());
+		
+		
+		// turn the raw Google API events into a list of BillData
+		List<CalendarData> calendarData;
+		try {
+			calendarData = calendarManager.eventToCalendarData(events);
+		} catch (Exception e) {
+			System.err.printf("Error parsing Google Calendar: %s", e.getMessage());
+			return;
+		}
+		
+		BillManager studentBillManager = new BillManager();
+		BillManager tutorBillManager = new BillManager();
+		
+		for (CalendarData data : calendarData) {
+			System.out.printf("Entry: student:%s time:%d tutor:%s\n", data.studentName, data.timeMinutes, data.tutorName);
 		}
 		
 		
 		ExcelManager excelManager;
 		try {
-			excelManager = new ExcelManager();
+		//	excelManager = new ExcelManager();
 		} catch (Exception e) {
 			System.err.printf("Error with excel: %s", e.getMessage());
 		}

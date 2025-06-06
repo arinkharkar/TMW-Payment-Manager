@@ -12,9 +12,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -40,6 +43,10 @@ public class GoogleCalendarManager {
 	private static final String TOKENS_DIRECTORY_PATH = "tokens";
 	
 	private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+	
+	private static final String REGEX_PATTERN = "^([A-Za-z]+)[A-Za-z\\s']*\\((\\d+)\\s*(?:minutes|mins|min) with (.*?)\\)$";
+	
+	private static final String VALID_NAME_REGEX = "^[A-Z][a-z]+(?:[ '-][A-Z]?[a-z]+)*$";
 	
 	// We only need to read from the calendar
 	private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
@@ -98,6 +105,71 @@ public class GoogleCalendarManager {
 		
 		return getEvents(startDate, endDate);
 	}
+	
+	/**
+	 * Converts a list of raw Google calendar data into a list of CalendarData
+	 * @param events The events to convert
+	 * @return The bill data list
+	 * @throws Exception 
+	 */
+	public List<CalendarData> eventToCalendarData(List<Event> events) throws Exception {
+		/* FORMAT:
+		 * [Name] ([Time spent] minutes with [Tutor])
+		 * We use a regex to extract this data from the list
+		 */
+		Pattern calendarValidationPattern = Pattern.compile(REGEX_PATTERN);
+		
+		List<CalendarData> billDatas = new ArrayList<CalendarData>();
+		
+		for (Event event : events) {
+			// Match the regex with the event title (contains the details)
+			Matcher matcher = calendarValidationPattern.matcher(event.getSummary());
+			if (!matcher.matches()) {
+				throw new Exception(String.format("Failed to parse \"%s\", the calendar event has an invalid format!", event.getSummary()));
+			}
+			
+			String studentName = matcher.group(1);
+			
+			// make sure the timeSpent is an actual number
+			int timeSpent;
+			try {
+				timeSpent = Integer.parseInt(matcher.group(2));
+			} catch (NumberFormatException e) {
+				throw new Exception(String.format("Error, couldnt parse %s, invalid format!", event.getSummary()));
+			}
+            String tutorName = matcher.group(3);
+            
+            // now we check if the names are valid based on another regex
+            Pattern namePattern = Pattern.compile(VALID_NAME_REGEX);
+            
+            
+            matcher = namePattern.matcher(tutorName);
+            
+            if (!matcher.matches()) {
+            	throw new Exception(String.format("Failed to parse %s, the tutor name has an invalid format! (enable no-check-names if this is an error)", event.getSummary()));
+            }
+            
+            matcher = namePattern.matcher(studentName);
+            
+            if (!matcher.matches()) {
+            	throw new Exception(String.format("Failed to parse %s, the student name has an invalid format! (enable no-check-names if this is an error)", event.getSummary()));
+            }
+            
+            CalendarData billData = new CalendarData();
+            
+            billData.timeMinutes = timeSpent;
+            billData.studentName = studentName;
+            billData.tutorName = tutorName;
+            
+            billDatas.add(billData);
+            
+		}
+		
+		
+		return billDatas;
+		
+	}
+	
 	
 	/**
 	 * Gets the previous Monday from the current system date & time

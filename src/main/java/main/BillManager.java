@@ -51,15 +51,17 @@ public class BillManager {
 	}
 	
 	/** 
-	 * Adds to the current owed balance of the student
+	 * Adds to the current owed balance of the student, creating the student if he/she weren't found
 	 * @param name The name of the student
 	 * @param balance The balance to add
-	 * @throws Exception if the student wasn't found or if the amount was too much
+	 * @throws Exception if the amount was too much
 	 */
 	void addOwedBalance(String name, int balance) throws Exception {
 		Integer startingBalance = owedBalance.get(name);
+		
+		// if the student didnt exist, start the balance at 0
 		if (startingBalance == null) {
-			throw new NullPointerException(String.format("Name %s does not exist!", name));	
+			startingBalance = 0;
 		}
 		
 		if (Math.abs(balance) > suspicousAmount) {
@@ -70,15 +72,15 @@ public class BillManager {
 	}
 	
 	/** 
-	 * Subtracts from the current owed balance of the student
+	 * Subtracts from the current owed balance of the student, creating the student if he/she weren't found
 	 * @param name The name of the student
 	 * @param balance The balance to subtract
-	 * @throws Exception if the student wasn't found or if the amount was too much
+	 * @throws Exception if the amount was too much
 	 */
 	void subtractOwedBalance(String name, int balance) throws Exception {
 		Integer startingBalance = owedBalance.get(name);
 		if (startingBalance == null) {
-			throw new NullPointerException(String.format("Name %s does not exist!", name));	
+			startingBalance = 0;
 		}
 		
 		if (Math.abs(balance) > suspicousAmount) {
