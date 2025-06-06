@@ -63,6 +63,13 @@ public class GoogleCalendarManager {
 		                       .build();	
 	}
 	
+	/**
+	 * Gets all calendar events from the start time to end time
+	 * @param start The DateTime object representing the beginning of objects to get
+	 * @param end The DateTime object representing the end of objects to get
+	 * @return a list of all events in that time
+	 * @throws IOException
+	 */
 	public List<Event> getEvents(DateTime start, DateTime end) throws IOException {
 	    List<Event> events = calendar.events().list("primary")
 				        .setTimeMin(start)
@@ -74,6 +81,12 @@ public class GoogleCalendarManager {
 	    return events;
 	}
 	
+	/**
+	 * Gets all calendar events from the Monday of the week to Sunday
+	 * @param mondayOfWeek the Monday to start at
+	 * @return a list of all events in that time
+	 * @throws Exception
+	 */
 	public List<Event> getWeekEvents(DateTime mondayOfWeek) throws Exception {
 		
 		if (Instant.ofEpochMilli(mondayOfWeek.getValue()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek() != DayOfWeek.MONDAY) {
@@ -86,6 +99,10 @@ public class GoogleCalendarManager {
 		return getEvents(startDate, endDate);
 	}
 	
+	/**
+	 * Gets the previous Monday from the current system date & time
+	 * @return DateTime object of the previous monday
+	 */
 	public static DateTime getPrevMonday() {
 		return new DateTime(Date.from(LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(LocalDate.now().getDayOfWeek() == DayOfWeek.MONDAY ? 1 : 0).atStartOfDay(ZoneId.systemDefault()).toInstant()));
 	}
