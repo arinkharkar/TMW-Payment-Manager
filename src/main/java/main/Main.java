@@ -54,6 +54,16 @@ public class Main {
 		BillManager studentBillManager = new BillManager();
 		BillManager tutorBillManager = new BillManager();
 		
+		// now go through the calendar data and make it 
+		for (CalendarData cData : calendarData) {
+			try {
+				studentBillManager.addOwedBalance(cData.studentName, 0);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		for (CalendarData data : calendarData) {
 			System.out.printf("Entry: student:%s time:%d tutor:%s\n", data.studentName, data.timeMinutes, data.tutorName);
 		}
