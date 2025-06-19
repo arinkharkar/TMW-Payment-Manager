@@ -123,6 +123,8 @@ public class GoogleCalendarManager {
 		
 		for (Event event : events) {
 			// Match the regex with the event title (contains the details)
+			String eventDescription = event.getDescription();
+			System.out.println(event.getDescription());
 			Matcher matcher = calendarValidationPattern.matcher(event.getSummary());
 			if (!matcher.matches()) {
 				throw new Exception(String.format("Failed to parse \"%s\", the calendar event has an invalid format!", event.getSummary()));

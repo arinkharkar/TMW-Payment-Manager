@@ -5,10 +5,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class BillManager {
-	Map<String, Integer> owedBalance;
-	
+	Map<String, Double> owedBalance;
+	public static final int CENTS_PER_DOLLAR = 100;
 	// if a transaction is more than this, lets have manual verification, it may be a bug
-	public static final int suspicousAmount = 1800;
+	public static final int suspicousAmount = 1800 * CENTS_PER_DOLLAR;
 	
 	public BillManager() {
 		// A TreeMap stores values alphabetically, perfect for iterating through people's names alphabetically
@@ -21,8 +21,8 @@ public class BillManager {
 	 * @return The owed balance of the student
 	 * @throws NullPointerException if the student wasn't found
 	 */
-	int getOwedBalance(String name) throws NullPointerException {
-		Integer balance = owedBalance.get(name);
+	double getOwedBalance(String name) throws NullPointerException {
+		Double balance = owedBalance.get(name);
 		// if the name doesn't exist
 		if (balance == null) {
 			throw new NullPointerException(String.format("Name %s does not exist!", name));
@@ -30,7 +30,13 @@ public class BillManager {
 		return balance;
 	}
 	
-	
+	/**
+	 * Gets the TreeMap object (used to iterate through all students at the end of the program
+	 * @return the TreeMap used to store the owed balances
+	 */
+	Map<String, Double> getBillMap() {
+		return owedBalance;
+	}
 	
 	/** 
 	 * Sets the current owed balance of the student
@@ -38,7 +44,7 @@ public class BillManager {
 	 * @param balance The balance to set
 	 * @throws Exception if the student wasn't found or if the amount was too much
 	 */
-	void setOwedBalance(String name, int balance) throws Exception {
+	void setOwedBalance(String name, double balance) throws Exception {
 		if (owedBalance.get(name) == null) {
 			throw new NullPointerException(String.format("Name %s does not exist!", name));	
 		}
@@ -56,12 +62,12 @@ public class BillManager {
 	 * @param balance The balance to add
 	 * @throws Exception if the amount was too much
 	 */
-	void addOwedBalance(String name, int balance) throws Exception {
-		Integer startingBalance = owedBalance.get(name);
+	void addOwedBalance(String name, double balance) throws Exception {
+		Double startingBalance = owedBalance.get(name);
 		
 		// if the student didnt exist, start the balance at 0
 		if (startingBalance == null) {
-			startingBalance = 0;
+			startingBalance = 0.0;
 		}
 		
 		if (Math.abs(balance) > suspicousAmount) {
@@ -77,10 +83,10 @@ public class BillManager {
 	 * @param balance The balance to subtract
 	 * @throws Exception if the amount was too much
 	 */
-	void subtractOwedBalance(String name, int balance) throws Exception {
-		Integer startingBalance = owedBalance.get(name);
+	void subtractOwedBalance(String name, double balance) throws Exception {
+		Double startingBalance = owedBalance.get(name);
 		if (startingBalance == null) {
-			startingBalance = 0;
+			startingBalance = 0.0;
 		}
 		
 		if (Math.abs(balance) > suspicousAmount) {
