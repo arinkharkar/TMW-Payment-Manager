@@ -11,8 +11,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 public class Main {
@@ -65,50 +68,42 @@ public class Main {
 			System.err.printf("Error finding tutor rates: %s", e.getMessage());
 			return;
 		}
+
 		
-		// now go through the calendar data and add the student billings to it all
 		for (CalendarData cData : calendarData) {
-			try {
 				
 				// get the rate of the tutor
 				double tutorRateCentsPerMin;
 				double tutorCutAsDecimal;
 				try {
 					tutorRateCentsPerMin = tutorCostManager.getTutorRateCentsPerMinute(cData.tutorName, cData.studentName);
+					tutorCutAsDecimal    = tutorCostManager.getTutorCut(cData.tutorName, cData.studentName);
 				} catch(Exception e) {
 					System.err.printf("Error finding rate of %s, %s", cData.tutorName, e.getMessage());
 					return;
 				}
 				
-				// get the cut the tutor makes
 				try {
-					tutorCutAsDecimal = tutorCostManager.getTutorCut(cData.tutorName, cData.studentName);
+					studentBillManager.addBillData(cData, tutorRateCentsPerMin, tutorCutAsDecimal);
 				} catch (Exception e) {
-					System.err.printf("Error finding cut of %s, %s", cData.tutorName, e.getMessage());
+					System.err.printf("Error adding bill data to %s", cData.studentName);
 					return;
 				}
 				
-				studentBillManager.addOwedBalance(cData.studentName, tutorRateCentsPerMin * cData.timeMinutes);
-				// add the total bill to the students owed balance, times the cut (should be 0.8)
-				tutorBillManager.addOwedBalance(cData.tutorName, tutorRateCentsPerMin * cData.timeMinutes * tutorCutAsDecimal);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		Map<String, Double> billMap = studentBillManager.getBillMap();
-		Map<String, Double> tutorOwedMap = tutorBillManager.getBillMap();
-		
-		for (Map.Entry<String, Double> entry : billMap.entrySet()) {
-			System.out.printf("%s owes $%.2f\n", entry.getKey(), entry.getValue() / 100.0);
-		}
-		
-		for (Map.Entry<String, Double> entry : tutorOwedMap.entrySet()) {
-			System.out.printf("You owe %s $%.2f\n", entry.getKey(), entry.getValue() / 100.0);
-		}
 
+		}
 		
+		for (Map.Entry<String, String> entry : studentBillManager.getTotalItemizedBillForAllStudents().entrySet()) {
+			System.out.printf("%s\nTotal: $%.2f\n\n", entry.getValue(), studentBillManager.getTotalBillForAllStudents().get(entry.getKey()));
+			
+		}
+		
+		System.out.println("----------------------------------------------------------------------------------");
+		
+		for (Map.Entry<String, String> entry : studentBillManager.getTotalItemizedBillForAllTutors().entrySet()) {
+			System.out.printf("%s\nTotal: $%.2f\n\n", entry.getValue(), studentBillManager.getTotalBillForAllTutors().get(entry.getKey()));
+			
+		}
 		
 		ExcelManager excelManager;
 		try {

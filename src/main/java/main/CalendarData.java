@@ -4,4 +4,5 @@ public class CalendarData {
 	public int timeMinutes;
 	public String studentName;
 	public String tutorName;
+	public String dateTimeOfTutoring;
 }

@@ -10,6 +10,7 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 
 public class GoogleCalendarManager {
@@ -51,7 +53,7 @@ public class GoogleCalendarManager {
 	// We only need to read from the calendar
 	private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
 
-	private final static int PORT = 8888; 
+	private final static int PORT = 8887; 
 	
 	Calendar calendar;
 	
@@ -123,8 +125,7 @@ public class GoogleCalendarManager {
 		
 		for (Event event : events) {
 			// Match the regex with the event title (contains the details)
-			String eventDescription = event.getDescription();
-			System.out.println(event.getDescription());
+
 			Matcher matcher = calendarValidationPattern.matcher(event.getSummary());
 			if (!matcher.matches()) {
 				throw new Exception(String.format("Failed to parse \"%s\", the calendar event has an invalid format!", event.getSummary()));
@@ -157,11 +158,33 @@ public class GoogleCalendarManager {
             	throw new Exception(String.format("Failed to parse %s, the student name has an invalid format! (enable no-check-names if this is an error)", event.getSummary()));
             }
             
+            // now lets get the date of the event
+            DateTime eventStartDateTime = event.getStart().getDateTime();
+            
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm a");
+            
+            String finalDateTimeString;
+            
+            try {
+            	 OffsetDateTime odt = OffsetDateTime.parse(eventStartDateTime.toStringRfc3339());
+
+                 // Convert to system default timezone
+                 odt = odt.atZoneSameInstant(ZoneId.systemDefault()).toOffsetDateTime();
+                 
+                 finalDateTimeString = odt.format(outputFormatter);
+                 
+            } catch (Exception e) {
+            	throw new Exception("Error: Could not get/parse the starting date/time of a calendar event");
+            }
+            
             CalendarData billData = new CalendarData();
             
             billData.timeMinutes = timeSpent;
             billData.studentName = studentName;
             billData.tutorName = tutorName;
+            billData.dateTimeOfTutoring = finalDateTimeString;
+            
+            System.out.println("Final time: " + billData.dateTimeOfTutoring);
             
             billDatas.add(billData);
             
